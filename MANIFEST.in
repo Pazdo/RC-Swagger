@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include rc_swagger *.css
+recursive-include rc_swagger *.csv
+recursive-include rc_swagger *.html
+recursive-include rc_swagger *.ico
+recursive-include rc_swagger *.js
+recursive-include rc_swagger *.json
+recursive-include rc_swagger *.md
+recursive-include rc_swagger *.png
+recursive-include rc_swagger *.py
+recursive-include rc_swagger *.svg
+recursive-include rc_swagger *.txt
+recursive-exclude rc_swagger *.pyc

@@ -1,0 +1,112 @@
+openapi: 3.0.0
+info:
+  version: "13"
+  title: Frappe / ERPNext API
+  license:
+    name: GPL-3.0
+    url: http://www.gnu.de/documents/gpl-3.0.en.html
+# servers:
+# - url: {{ url }}
+#   description: {{ server }}
+tags:
+  - name: Whitelisted Methods
+    description: Call a server method
+  {% for tag in tags %}
+  - name: {{ tag }}
+  {% endfor %}
+paths:
+  {% for method in methods %}
+  /api/method/{{ method.name }}:
+    get:
+      tags:
+        - Whitelisted Methods
+        {% for tag in method.tags %}
+        - {{ tag }}
+        {% endfor %}
+      parameters:
+      {% for param in method.parameters.keys() %}
+        - in: query
+          name: {{ param }}
+          required: {{ method.parameters[param].required }}
+          schema:
+            type: {{ method.parameters[param].type }}
+            {%- if method.parameters[param].default %}
+            example: {{ method.parameters[param].default }}
+            {%- endif %}
+          description: {{ method.parameters[param].description }}
+      {% endfor %}
+
+      summary: {{ method.summary }}
+      description: {{ method.description }}
+      responses:
+          '200':
+            description: {{ method.success }}
+          '401':
+            description: {{ method.unauthorized }}
+          '403':
+            description: {{ method.forbidden }}
+          '404':
+            description: {{ method.notfound }}
+    {%- if method.post %}
+    post:
+      tags:
+        - Whitelisted Methods
+        {% for tag in method.tags %}
+        - {{ tag }}
+        {% endfor %}
+      {%- if method.parameters.keys() %}
+      requestBody:
+        description: Optional description in *Markdown*
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                {% for param in method.parameters.keys() %}
+                {{ param }}:
+                  type: {{ method.parameters[param].type }}
+                {% endfor %}
+      {%- endif %}
+
+      summary: {{ method.summary }}
+      responses:
+          '200':
+            description: {{ method.success }}
+          '401':
+            description: {{ method.unauthorized }}
+          '403':
+            description: {{ method.forbidden }}
+          '404':
+            description: {{ method.notfound }}
+    {%- endif %}
+
+  {% endfor %}
+  
+  securitySchemes:
+    tokenAuth: # arbitrary name
+      type: apiKey
+      in: header
+      name: Authorization
+      description: |
+        Get your API keys at User -> Api Access -> Generate Keys.
+        "headers = {'Authorization': 'token <api_key>:<api_secret>'}"
+    basicAuth: # arbitrary name
+      type: http
+      scheme: basic
+      description: |
+        Get your API keys at User -> Api Access -> Generate Keys.
+        username = api_key; password = api_secret
+        [More info](https://frappe.io/docs/user/en/guides/integration/token_based_auth)
+    oAuth2: # arbitrary name
+      type: oauth2
+      description: |
+        This API uses OAuth 2 with the authorization code flow. 
+        [More info]https://frappe.io/docs/user/en/guides/integration/using_oauth)
+      flows:
+        authorizationCode:
+          authorizationUrl: /method/frappe.integrations.oauth2.authorize
+          tokenUrl: /method/frappe.integrations.oauth2.get_token
+          refreshUrl: /method/frappe.integrations.oauth2.get_token
+          scopes:
+            all: Same permissions as the user who created the oAuth client
